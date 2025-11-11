@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -36,22 +35,14 @@ func docs(rw http.ResponseWriter, req *http.Request) {
 }
 
 func getAllChars(rw http.ResponseWriter, req *http.Request) {
-	var buf bytes.Buffer
 	chars := cdb.getAll()
 
-	err := json.NewEncoder(&buf).Encode(chars)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	rw.Header().Set("Content-Type", "application/json")
-	_, err = rw.Write(buf.Bytes())
+	err := json.NewEncoder(rw).Encode(chars)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 }
 
 func getCharById(rw http.ResponseWriter, req *http.Request) {
@@ -62,15 +53,8 @@ func getCharById(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var buf bytes.Buffer
-	err = json.NewEncoder(&buf).Encode(char)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	rw.Header().Set("Content-Type", "application/json")
-	_, err = rw.Write(buf.Bytes())
+	err = json.NewEncoder(rw).Encode(char)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -93,14 +77,6 @@ func createChar(rw http.ResponseWriter, req *http.Request) {
 
 	if !cdb.charExists(charID) {
 
-		var buf bytes.Buffer
-
-		err = json.NewEncoder(&buf).Encode(char)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		err = cdb.create(charID, char)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -109,11 +85,12 @@ func createChar(rw http.ResponseWriter, req *http.Request) {
 
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusCreated)
-		_, err = rw.Write(buf.Bytes())
+		err = json.NewEncoder(rw).Encode(char)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		return
 	}
 
@@ -144,19 +121,13 @@ func updateChar(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		var buf bytes.Buffer
-		err = json.NewEncoder(&buf).Encode(char)
+		rw.Header().Set("Content-type", "application/json")
+		err = json.NewEncoder(rw).Encode(char)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		rw.Header().Set("Content-type", "application/json")
-		_, err = rw.Write(buf.Bytes())
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
-		}
 		return
 	}
 
@@ -169,23 +140,13 @@ func deleteChar(rw http.ResponseWriter, req *http.Request) {
 
 	if cdb.charExists(charId) {
 
-		char := cdb.db[charId]
-		var buf bytes.Buffer
-
-		err := json.NewEncoder(&buf).Encode(char)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		err = cdb.delete(charId)
+		err := cdb.delete(charId)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		rw.WriteHeader(http.StatusNoContent)
-
 		return
 	}
 
