@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -13,6 +14,20 @@ func init() {
 	}
 }
 
+func WriteErrorJSON(rw http.ResponseWriter, error_msg string, status_code int) {
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(status_code)
+
+	err := json.NewEncoder(rw).Encode(jsonError{
+		Code:    status_code,
+		Message: error_msg,
+	})
+
+	if err != nil {
+		http.Error(rw, error_msg, status_code)
+	}
+}
+
 func CharacterMultiplex(rw http.ResponseWriter, req *http.Request) {
 	//multiplex handlerFunc for the /characters endpoint
 	switch req.Method {
@@ -21,7 +36,7 @@ func CharacterMultiplex(rw http.ResponseWriter, req *http.Request) {
 	case http.MethodPost:
 		createChar(rw, req)
 	default:
-		http.Error(rw, "method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorJSON(rw, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 }
@@ -36,7 +51,7 @@ func CharacterIdMultiplex(rw http.ResponseWriter, req *http.Request) {
 	case http.MethodPut:
 		updateChar(rw, req)
 	default:
-		http.Error(rw, "method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorJSON(rw, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 }

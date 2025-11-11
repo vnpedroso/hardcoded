@@ -14,6 +14,11 @@ type characterJSON struct {
 	MainWeapon string `json:"main_weapon,omitempty"`
 }
 
+type jsonError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 type characterPayload []characterJSON
 
 type characterDb struct {

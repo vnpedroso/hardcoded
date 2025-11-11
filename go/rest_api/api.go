@@ -11,7 +11,7 @@ import (
 func index(rw http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		rw.Header().Set("Allow", http.MethodGet)
-		http.Error(rw, "method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorJSON(rw, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -26,7 +26,7 @@ func index(rw http.ResponseWriter, req *http.Request) {
 func docs(rw http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		rw.Header().Set("Allow", http.MethodGet)
-		http.Error(rw, "method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorJSON(rw, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -40,7 +40,7 @@ func getAllChars(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(rw).Encode(chars)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -49,14 +49,14 @@ func getCharById(rw http.ResponseWriter, req *http.Request) {
 	charId := req.PathValue("id")
 	char, err := cdb.get(charId)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(rw).Encode(char)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -67,7 +67,7 @@ func createChar(rw http.ResponseWriter, req *http.Request) {
 
 	err := json.NewDecoder(req.Body).Decode(&char)
 	if err != nil {
-		http.Error(rw, "Invalid JSON payload containing character data", http.StatusBadRequest)
+		WriteErrorJSON(rw, "Invalid JSON payload containing character data", http.StatusBadRequest)
 		return
 	}
 
@@ -79,7 +79,7 @@ func createChar(rw http.ResponseWriter, req *http.Request) {
 
 		err = cdb.create(charID, char)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -87,14 +87,14 @@ func createChar(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(rw).Encode(char)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		return
 	}
 
-	http.Error(rw, "character already exists!", http.StatusConflict) // status 409
+	WriteErrorJSON(rw, "character already exists!", http.StatusConflict) // status 409
 }
 
 func updateChar(rw http.ResponseWriter, req *http.Request) {
@@ -105,33 +105,33 @@ func updateChar(rw http.ResponseWriter, req *http.Request) {
 		var char characterJSON
 		err := json.NewDecoder(req.Body).Decode(&char)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		err = cdb.delete(charId)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		err = cdb.create(charId, char)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		rw.Header().Set("Content-type", "application/json")
 		err = json.NewEncoder(rw).Encode(char)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		return
 	}
 
-	http.Error(rw, "character with the provided id does not exist", http.StatusNotFound) //404
+	WriteErrorJSON(rw, "character with the provided id does not exist", http.StatusNotFound) //404
 
 }
 
@@ -142,7 +142,7 @@ func deleteChar(rw http.ResponseWriter, req *http.Request) {
 
 		err := cdb.delete(charId)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			WriteErrorJSON(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -150,5 +150,5 @@ func deleteChar(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Error(rw, "character with the provided id does not exist", http.StatusNotFound) //404
+	WriteErrorJSON(rw, "character with the provided id does not exist", http.StatusNotFound) //404
 }
