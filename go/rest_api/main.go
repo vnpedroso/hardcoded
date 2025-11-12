@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -11,20 +10,6 @@ var cdb *characterDb
 func init() {
 	cdb = &characterDb{
 		db: make(map[string]characterJSON),
-	}
-}
-
-func WriteErrorJSON(rw http.ResponseWriter, error_msg string, status_code int) {
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(status_code)
-
-	err := json.NewEncoder(rw).Encode(jsonError{
-		Code:    status_code,
-		Message: error_msg,
-	})
-
-	if err != nil {
-		http.Error(rw, error_msg, status_code)
 	}
 }
 

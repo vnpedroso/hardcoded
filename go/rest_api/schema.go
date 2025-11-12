@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"net/http"
 	"sync"
 )
 
@@ -14,12 +16,26 @@ type characterJSON struct {
 	MainWeapon string `json:"main_weapon,omitempty"`
 }
 
+type characterPayload []characterJSON
+
 type jsonError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-type characterPayload []characterJSON
+func WriteErrorJSON(rw http.ResponseWriter, error_msg string, status_code int) {
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(status_code)
+
+	err := json.NewEncoder(rw).Encode(jsonError{
+		Code:    status_code,
+		Message: error_msg,
+	})
+
+	if err != nil {
+		http.Error(rw, error_msg, status_code)
+	}
+}
 
 type characterDb struct {
 	mtx sync.Mutex
