@@ -59,6 +59,9 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func main() {
 
+	log.SetPrefix("myGoServer: ")
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
