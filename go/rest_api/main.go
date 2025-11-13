@@ -42,7 +42,7 @@ func CharacterIdMultiplex(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func logger(next http.Handler) http.Handler {
+func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 
@@ -68,9 +68,9 @@ func main() {
 	mux.HandleFunc("/characters", CharacterMultiplex)
 	mux.HandleFunc("/characters/{id}", CharacterIdMultiplex)
 
-	muxLogger := logger(mux)
+	server := loggingMiddleware(mux)
 
-	err := http.ListenAndServe(":8080", muxLogger)
+	err := http.ListenAndServe(":8080", server)
 	if err != nil {
 		log.Fatalln(err)
 	}
