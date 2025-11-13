@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 )
 
 var cdb *characterDb
@@ -41,15 +42,35 @@ func CharacterIdMultiplex(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		start := time.Now()
+
+		next.ServeHTTP(rw, req)
+
+		log.Printf("%s %s %s [%v]",
+			req.Method,
+			req.URL.Path,
+			req.RemoteAddr,
+			time.Since(start),
+		)
+	})
+}
+
 func main() {
-	http.Handle("/favicon.ico", http.NotFoundHandler())
 
-	http.HandleFunc("/", index)
-	http.HandleFunc("/docs", docs)
-	http.HandleFunc("/characters", CharacterMultiplex)
-	http.HandleFunc("/characters/{id}", CharacterIdMultiplex)
+	mux := http.NewServeMux()
 
-	err := http.ListenAndServe(":8080", nil)
+	mux.Handle("/favicon.ico", http.NotFoundHandler())
+
+	mux.HandleFunc("/", index)
+	mux.HandleFunc("/docs", docs)
+	mux.HandleFunc("/characters", CharacterMultiplex)
+	mux.HandleFunc("/characters/{id}", CharacterIdMultiplex)
+
+	muxLogger := logger(mux)
+
+	err := http.ListenAndServe(":8080", muxLogger)
 	if err != nil {
 		log.Fatalln(err)
 	}
